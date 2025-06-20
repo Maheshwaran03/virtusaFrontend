@@ -111,23 +111,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-50">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md border border-blue-100">
-        {view === 'main' && (
-          <>
-            <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">DLVery Login</h2>
-            <button
-              onClick={() => setView('inventory')}
-              className="w-full bg-blue-600 text-white py-2 rounded mb-4 hover:bg-blue-700"
-            >
-              Inventory Team Login
-            </button>
-            <button
-              onClick={() => setView('delivery')}
-              className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-            >
-              Delivery Team Login (Google)
-            </button>
-          </>
-        )}
+
 
         {view === 'inventory' && (
           <>
