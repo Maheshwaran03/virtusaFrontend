@@ -7,56 +7,79 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleAdminLogin = (e) => {
+  const handleAdminLogin = async (e) => {
     e.preventDefault();
-    // Replace with real authentication logic
-    if (username === 'admin' && password === 'admin123') {
-      localStorage.setItem('userType', 'Admin');
-      navigate('/admin-dashboard'); // You can create this route later
-    } else {
-      setError('Invalid admin credentials.');
+    setError(''); // Reset error message before request
+
+    try {
+      const response = await fetch('http://localhost:8080/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const text = await response.text();
+
+      if (response.ok && text === 'Login successful') {
+        localStorage.setItem('userType', 'Admin');
+        navigate('/admin-dashboard');
+      } else {
+        setError(text || 'Invalid credentials');
+      }
+    // eslint-disable-next-line no-unused-vars
+    } catch (err) {
+      setError('Login request failed. Check your backend server.');
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-50">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md relative border border-blue-100">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md border border-blue-100">
         <h2 className="text-3xl font-bold mb-6 text-center text-blue-700">Admin Login</h2>
+
         <div className="flex justify-between mb-6 gap-2">
           <button
             onClick={() => navigate('/login?view=delivery')}
-            className="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition-colors"
+            className="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition"
           >
             Delivery Login
           </button>
           <button
             onClick={() => navigate('/login?view=inventory')}
-            className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors"
+            className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
           >
             Inventory Login
           </button>
         </div>
-        {error && <div className="mb-4 text-red-500 text-center">{error}</div>}
+
+        {error && (
+          <div className="mb-4 text-red-500 text-center">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleAdminLogin} className="space-y-4">
           <input
             type="text"
             placeholder="Admin Username"
-            className="w-full px-3 py-2 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="w-full px-3 py-2 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
           />
+
           <input
             type="password"
             placeholder="Password"
-            className="w-full px-3 py-2 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="w-full px-3 py-2 border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+
           <button
             type="submit"
-            className="w-full bg-blue-700 text-white py-2 rounded hover:bg-blue-800 transition-colors"
+            className="w-full bg-blue-700 text-white py-2 rounded hover:bg-blue-800 transition"
           >
             Login as Admin
           </button>
@@ -64,4 +87,4 @@ export default function AdminLogin() {
       </div>
     </div>
   );
-} 
+}

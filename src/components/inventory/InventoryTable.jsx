@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 
 export default function InventoryTable({ items, setItems }) {
   const [filters, setFilters] = useState({
@@ -26,22 +27,34 @@ export default function InventoryTable({ items, setItems }) {
     }));
   };
 
-  const handleUpdate = () => {
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === editingItem.id ? editingItem : item
-      )
-    );
-    setEditingItem(null);
+  const handleUpdate = async () => {
+    try {
+      await axios.put(`http://localhost:8080/api/inventory/${editingItem.id}`, editingItem);
+      setItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === editingItem.id ? editingItem : item
+        )
+      );
+      setEditingItem(null);
+    } catch (error) {
+      console.error("Error updating item:", error);
+      alert("Failed to update item.");
+    }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this item?");
-    if (confirmDelete) {
+    if (!confirmDelete) return;
+
+    try {
+      await axios.delete(`http://localhost:8080/api/inventory/${id}`);
       setItems((prevItems) => prevItems.filter((item) => item.id !== id));
       if (editingItem && editingItem.id === id) {
         setEditingItem(null);
       }
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      alert("Failed to delete item.");
     }
   };
 

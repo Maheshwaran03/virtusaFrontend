@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import DeliveryCard from './DeliveryCard';
 import StatusUpdateModal from './StatusUpdateModal';
-import QRScanner from './QRScanner';
 
 export default function DeliveryDashboard() {
   const [activeTab, setActiveTab] = useState('today');
   const [deliveries, setDeliveries] = useState([]);
   const [selectedDelivery, setSelectedDelivery] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [showQRScanner, setShowQRScanner] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Mock data - replace with actual API calls
@@ -92,12 +90,7 @@ export default function DeliveryDashboard() {
     }
   };
 
-  const handleQRScan = (qrData) => {
-    // Handle QR code scan result
-    console.log('QR Code scanned:', qrData);
-    setShowQRScanner(false);
-    // You can use this to verify delivery items or update status
-  };
+ 
 
   if (loading) {
     return (
@@ -120,14 +113,7 @@ export default function DeliveryDashboard() {
               <h1 className="text-2xl font-bold text-blue-700">Delivery Dashboard</h1>
               <p className="text-sm text-blue-600">Agent: DLTeam</p>
             </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setShowQRScanner(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-              >
-                📱 Scan QR
-              </button>
-            </div>
+      
           </div>
         </div>
       </header>
@@ -201,13 +187,7 @@ export default function DeliveryDashboard() {
         />
       )}
 
-      {/* QR Scanner Modal */}
-      {showQRScanner && (
-        <QRScanner
-          onClose={() => setShowQRScanner(false)}
-          onScan={handleQRScan}
-        />
-      )}
+  
     </div>
   );
 } 

@@ -1,44 +1,59 @@
-import { useState } from "react";
+import * as XLSX from "xlsx";
 
-export default function BulkUploadModal({ onClose }) {
-  const [file, setFile] = useState(null);
-  const [status, setStatus] = useState("");
+export default function BulkUploadModal({ onClose, onUpload }) {
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const handleFileChange = e => {
-    setFile(e.target.files[0]);
-    setStatus("");
-  };
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const data = evt.target.result;
+      const workbook = XLSX.read(data, { type: "binary" });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(sheet);
 
-  const handleSubmit = e => {
-    e.preventDefault();
-    if (!file) {
-      setStatus("Please select a CSV file.");
-      return;
-    }
-    // TODO: Connect to backend
-    setStatus("Upload successful! (mock)");
-    setTimeout(onClose, 1000);
+      const parsedItems = rows.map((row) => ({
+        itemName: row["Item Name"],
+        sku: row["SKU"],
+        category: row["Category"],
+        quantity: parseInt(row["Quantity"]),
+        expiryDate: row["Expiry"],
+        isPerishable: row["Perishable"] === "Yes" || row["Perishable"] === true,
+        isDamaged: row["Damaged"] === "Yes" || row["Damaged"] === true,
+      }));
+
+      onUpload(parsedItems);
+      onClose();
+    };
+    reader.readAsBinaryString(file);
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
-        <button className="absolute top-2 right-2 text-gray-500" onClick={onClose}>&times;</button>
-        <h2 className="text-xl font-bold mb-4">Bulk Upload Inventory (CSV)</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="file"
-            accept=".csv"
-            onChange={handleFileChange}
-            className="w-full"
-          />
-          {status && <div className="text-green-600">{status}</div>}
-          <button type="submit" className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">Upload</button>
-        </form>
-        <div className="mt-4 text-sm text-gray-500">
-          <p>CSV columns: Item Name, SKU, Category, Quantity, Expiry Date, Is Perishable, Is Damaged</p>
+      <div className="bg-blue-50 border border-blue-300 rounded-lg shadow-lg p-8 w-full max-w-md relative">
+        <button
+          className="absolute top-2 right-2 text-blue-700 text-xl font-bold hover:text-blue-900"
+          onClick={onClose}
+        >
+          &times;
+        </button>
+        <h2 className="text-2xl font-bold mb-6 text-blue-800">Bulk Upload Inventory</h2>
+        
+        <input
+          type="file"
+          accept=".xlsx, .xls"
+          onChange={handleFileChange}
+          className="w-full mb-6 p-2 border border-blue-300 rounded bg-white"
+        />
+
+        <div className="text-sm text-blue-700 bg-blue-100 p-3 rounded">
+          <p><strong>Upload Excel with columns:</strong></p>
+          <p className="mt-1 font-semibold">
+            Item Name, SKU, Category, Quantity, Expiry, Perishable, Damaged
+          </p>
         </div>
       </div>
     </div>
   );
-} 
+}
