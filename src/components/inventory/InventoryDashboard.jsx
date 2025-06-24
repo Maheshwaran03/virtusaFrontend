@@ -58,15 +58,20 @@ export default function InventoryDashboard() {
           <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={() => setShowAdd(true)}>+ Add Item</button>
           <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onClick={() => setShowBulk(true)}>Bulk Upload</button>
           <button className="bg-blue-400 text-white px-4 py-2 rounded hover:bg-blue-500" onClick={() => setShowTrack(true)}>Track Delivery</button>
-          <button className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 flex items-center gap-2" onClick={() => {
-            localStorage.removeItem("userType");
-            window.location.href = "/login";
-          }}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7" />
-            </svg>
-            Logout
-          </button>
+         <button
+  className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 flex items-center gap-2"
+  onClick={() => {
+    localStorage.removeItem("userType");
+    // eslint-disable-next-line no-undef
+    navigate("/login");
+  }}
+>
+  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7" />
+  </svg>
+  Logout
+</button>
+
         </div>
       </header>
 
