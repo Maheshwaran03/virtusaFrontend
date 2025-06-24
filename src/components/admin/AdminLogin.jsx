@@ -9,7 +9,7 @@ export default function AdminLogin() {
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
-    setError(''); // Reset error message before request
+    setError('');
 
     try {
       const response = await fetch('http://localhost:8080/api/admin/login', {
@@ -33,8 +33,11 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-50">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md border border-blue-100">
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center"
+      style={{ backgroundImage: "url('/bg-login-light.png')" }}
+    >
+      <div className="bg-white bg-opacity-90 p-8 rounded-lg shadow-lg w-full max-w-md border border-blue-100 backdrop-blur-md">
         <h2 className="text-3xl font-bold mb-6 text-center text-blue-700">Admin Login</h2>
 
         <div className="flex justify-between mb-6 gap-2">

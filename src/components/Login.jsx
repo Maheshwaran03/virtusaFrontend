@@ -20,15 +20,8 @@ export default function Login() {
     }
   }, [location.search]);
 
-  // const INV_CREDENTIALS = { username: 'invteam', password: 'password123' };
-
   const handleInvLogin = async (e) => {
     e.preventDefault();
-    // console.log({
-    //   username: invUsername,
-    //   password: invPassword
-    // });
-    // return;
     try {
       const response = await axios.post(
         'http://localhost:8080/api/inventory/login',
@@ -42,17 +35,14 @@ export default function Login() {
           },
         }
       );
-      console.log(response);
       if (response.status === 200) {
         localStorage.setItem('userType', 'InvTeam');
         navigate('/inventory-dashboard');
       }
-
     } catch (error) {
-      if(error.status === 401) {
+      if (error.status === 401) {
         setError('Invalid username or password.');
-      }
-      else {
+      } else {
         setError('Server error. Please try again later.');
       }
     }
@@ -62,36 +52,23 @@ export default function Login() {
     setError('');
     try {
       const auth = getAuth(app);
-
-      // Clear any existing auth state to force fresh login
       await auth.signOut();
 
       const provider = new GoogleAuthProvider();
-
-      // Force account selection every time with multiple parameters
       provider.setCustomParameters({
         prompt: 'select_account',
         access_type: 'offline',
         include_granted_scopes: 'true'
       });
-
-      // Add scopes to ensure fresh authentication
       provider.addScope('email');
       provider.addScope('profile');
 
-      console.log('Attempting Google sign-in...');
       const result = await signInWithPopup(auth, provider);
-      console.log('Google sign-in successful:', result.user.email);
-
       localStorage.setItem('userType', 'DLTeam');
       localStorage.setItem('userEmail', result.user.email);
       navigate('/delivery-dashboard');
     } catch (err) {
-      console.error('Google login error:', err);
-
-      // Provide specific error messages
       let errorMessage = 'Google login failed. Please try again.';
-
       if (err.code === 'auth/popup-closed-by-user') {
         errorMessage = 'Login cancelled. Please try again.';
       } else if (err.code === 'auth/popup-blocked') {
@@ -103,21 +80,20 @@ export default function Login() {
       } else if (err.code) {
         errorMessage = `Login error: ${err.code}`;
       }
-
       setError(errorMessage);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-50">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md border border-blue-100">
-
-
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center"
+      style={{ backgroundImage: "url('/bg-login-light.png')" }}
+    >
+      <div className="bg-white bg-opacity-90 p-8 rounded-lg shadow-md w-full max-w-md border border-blue-100 backdrop-blur-md">
         {view === 'inventory' && (
           <>
             <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">Inventory Login</h2>
             {error && <div className="mb-4 text-red-500 text-center">{error}</div>}
-
             <form onSubmit={handleInvLogin} className="space-y-4">
               <input
                 type="text"
