@@ -41,18 +41,19 @@ export default function AdminLogin() {
         <h2 className="text-3xl font-bold mb-6 text-center text-blue-700">Admin Login</h2>
 
         <div className="flex justify-between mb-6 gap-2">
+         <button
+            onClick={() => navigate('/login?view=inventory')}
+            className="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition"
+          >
+            Inventory Login
+          </button>
           <button
             onClick={() => navigate('/login?view=delivery')}
             className="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition"
           >
             Delivery Login
           </button>
-          <button
-            onClick={() => navigate('/login?view=inventory')}
-            className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-          >
-            Inventory Login
-          </button>
+         
         </div>
 
         {error && (

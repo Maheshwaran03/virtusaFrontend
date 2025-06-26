@@ -60,6 +60,26 @@ export default function AdminDashboard() {
     }
   };
 
+const handleResetPassword = async (username) => {
+  const newPassword = window.prompt(`Enter a new password for "${username}":`);
+  if (!newPassword) return;
+
+  try {
+    await axios.put(
+      `${API_URL}/${username}/reset`,
+      { password: newPassword },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    setSuccess(`Password for '${username}' updated successfully.`);
+    setTimeout(() => setSuccess(''), 3000);
+  // eslint-disable-next-line no-unused-vars
+  } catch (err) {
+    setError('Error updating password.');
+    setTimeout(() => setError(''), 3000);
+  }
+};
+
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-50">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg border border-blue-100">
@@ -107,16 +127,29 @@ export default function AdminDashboard() {
             <div className="mt-6">
               <h4 className="text-md font-semibold text-blue-500 mb-2">Inventory Users</h4>
               <ul className="space-y-2">
-                {inventoryUsers.length === 0 && <li className="text-blue-300">No inventory users.</li>}
+                {inventoryUsers.length === 0 && (
+                  <li className="text-blue-300">No inventory users.</li>
+                )}
                 {inventoryUsers.map(user => (
-                  <li key={user.username} className="flex items-center justify-between bg-blue-50 px-3 py-2 rounded">
+                  <li
+                    key={user.username}
+                    className="flex items-center justify-between bg-blue-50 px-3 py-2 rounded"
+                  >
                     <span className="text-blue-700">{user.username}</span>
-                    <button
-                      onClick={() => handleDelete(user.username)}
-                      className="text-red-500 hover:text-red-700 text-sm font-semibold"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleResetPassword(user.username)}
+                        className="text-red-500 hover:text-red-700 text-sm font-semibold"
+                      >
+                        Reset
+                      </button>
+                      <button
+                        onClick={() => handleDelete(user.username)}
+                        className="text-red-500 hover:text-red-700 text-sm font-semibold"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>

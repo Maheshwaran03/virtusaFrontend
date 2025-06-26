@@ -2,32 +2,47 @@ import * as XLSX from "xlsx";
 
 export default function BulkUploadModal({ onClose, onUpload }) {
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const file = e.target.files[0];
+  if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      const data = evt.target.result;
-      const workbook = XLSX.read(data, { type: "binary" });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const rows = XLSX.utils.sheet_to_json(sheet);
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    const data = evt.target.result;
+    const workbook = XLSX.read(data, { type: "binary" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-      const parsedItems = rows.map((row) => ({
-        itemName: row["Item Name"],
-        sku: row["SKU"],
-        category: row["Category"],
-        quantity: parseInt(row["Quantity"]),
-        expiryDate: row["Expiry"],
-        isPerishable: row["Perishable"] === "Yes" || row["Perishable"] === true,
-        isDamaged: row["Damaged"] === "Yes" || row["Damaged"] === true,
-      }));
+    const parsedItems = rows.map((row) => {
+      const expiryValue = row["Expiry"];
 
-      onUpload(parsedItems);
-      onClose();
-    };
-    reader.readAsBinaryString(file);
+      // Convert Excel date serial number to ISO string if needed
+      const parsedExpiryDate = typeof expiryValue === "number"
+        ? XLSX.SSF.format("yyyy-mm-dd", expiryValue)
+        : new Date(expiryValue).toISOString().split("T")[0];
+
+      return {
+        itemName: String(row["Item Name"]).trim(),
+        sku: String(row["SKU"]).trim(),
+        category: String(row["Category"]).trim(),
+        quantity: parseInt(row["Quantity"], 10) || 0,
+        expiryDate: parsedExpiryDate,
+        isPerishable:
+          row["Perishable"] === "Yes" ||
+          row["Perishable"] === "yes" ||
+          row["Perishable"] === true,
+        isDamaged:
+          row["Damaged"] === "Yes" ||
+          row["Damaged"] === "yes" ||
+          row["Damaged"] === true,
+      };
+    });
+
+    onUpload(parsedItems);
+    onClose();
   };
+  reader.readAsBinaryString(file);
+};
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">

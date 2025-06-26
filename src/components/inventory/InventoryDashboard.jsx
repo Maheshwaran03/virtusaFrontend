@@ -11,6 +11,7 @@ export default function InventoryDashboard() {
   const [showAdd, setShowAdd] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
   const [showTrack, setShowTrack] = useState(false);
+  const [showAgentAssign, setShowAgentAssign] = useState(false); // new state for Agent Assigning
 
   // Load data from backend
   useEffect(() => {
@@ -25,7 +26,14 @@ export default function InventoryDashboard() {
         setItems((prev) => [...prev, res.data]);
         setShowAdd(false);
       })
-      .catch((err) => console.error("Add item error", err));
+      .catch((err) => {
+        if (err.response && err.response.status === 409) {
+          alert("SKU ID already exists. Please try another.");
+        } else {
+          console.error("Add item error", err);
+          alert("Failed to add item.");
+        }
+      });
   };
 
   const handleBulkUpload = (uploadedItems) => {
@@ -51,29 +59,40 @@ export default function InventoryDashboard() {
 
   return (
     <div className="min-h-screen bg-blue-50">
-      {/* Header */}
-      <header className="bg-white shadow px-8 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-blue-100">
+      {/* Top Header */}
+      <header className="bg-white shadow px-8 py-4 border-b border-blue-100">
         <h1 className="text-2xl font-bold text-blue-700">DLVery Inventory Management</h1>
-        <div className="flex flex-wrap items-center justify-end gap-4 w-full md:w-auto md:ml-auto">
-          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={() => setShowAdd(true)}>+ Add Item</button>
-          <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onClick={() => setShowBulk(true)}>Bulk Upload</button>
-          <button className="bg-blue-400 text-white px-4 py-2 rounded hover:bg-blue-500" onClick={() => setShowTrack(true)}>Track Delivery</button>
-         <button
-  className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 flex items-center gap-2"
-  onClick={() => {
-    localStorage.removeItem("userType");
-    // eslint-disable-next-line no-undef
-    navigate("/login");
-  }}
->
-  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7" />
-  </svg>
-  Logout
-</button>
-
-        </div>
       </header>
+
+      {/* Modern Styled Top Navigation Bar */}
+      <div className="bg-white px-8 py-3 shadow-sm border-b border-blue-100">
+        <div className="flex gap-4">
+          <button
+            onClick={() => setShowAdd(true)}
+            className="px-5 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
+          >
+            + Add Item
+          </button>
+          <button
+            onClick={() => setShowBulk(true)}
+            className="px-5 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
+          >
+            Bulk Upload
+          </button>
+          <button
+            onClick={() => setShowTrack(true)}
+            className="px-5 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
+          >
+            Track Delivery
+          </button>
+          <button
+            onClick={() => setShowAgentAssign(true)}
+            className="px-5 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
+          >
+            Agent Assigning
+          </button>
+        </div>
+      </div>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-8 px-4">
@@ -87,6 +106,21 @@ export default function InventoryDashboard() {
       {showAdd && <AddItemModal onClose={() => setShowAdd(false)} onAdd={handleAddItem} />}
       {showBulk && <BulkUploadModal onClose={() => setShowBulk(false)} onUpload={handleBulkUpload} />}
       {showTrack && <TrackDeliveryModal onClose={() => setShowTrack(false)} />}
+      {/* Placeholder: AgentAssignModal can be created later */}
+      {showAgentAssign && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-96">
+            <h2 className="text-lg font-semibold mb-4 text-blue-700">Agent Assigning (Coming Soon)</h2>
+            <p className="text-gray-600 mb-4">This feature is under development.</p>
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              onClick={() => setShowAgentAssign(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
