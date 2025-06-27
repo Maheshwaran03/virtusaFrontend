@@ -1,49 +1,32 @@
+// src/components/inventory/InventoryDashboard.jsx
+
 import { useState, useEffect } from "react";
 import axios from "axios";
 import InventoryTable from "./InventoryTable";
-import AddItemModal from "./AddItemModal";
-import BulkUploadModal from "./BulkUploadModal";
-import TrackDeliveryModal from "./TrackDeliveryModal";
 import Reports from "./Reports";
+import { useNavigate } from "react-router-dom";
 
 export default function InventoryDashboard() {
   const [items, setItems] = useState([]);
-  const [showAdd, setShowAdd] = useState(false);
-  const [showBulk, setShowBulk] = useState(false);
-  const [showTrack, setShowTrack] = useState(false);
-  const [showAgentAssign, setShowAgentAssign] = useState(false); // new state for Agent Assigning
+  const [categories, setCategories] = useState([]);
+  const navigate = useNavigate();
 
-  // Load data from backend
   useEffect(() => {
-    axios.get("http://localhost:8080/api/inventory")
-      .then((res) => setItems(res.data))
-      .catch((err) => console.error("Failed to fetch inventory", err));
+    console.log("InventoryDashboard mounted");
+    axios
+      .get("http://localhost:8080/api/inventory")
+      .then((res) => {
+        console.log("Fetched inventory items:", res.data.length);
+        setItems(res.data);
+
+        // ✅ Extract unique categories
+        const uniqueCategories = [
+          ...new Set(res.data.map((item) => item.category).filter(Boolean)),
+        ];
+        setCategories(uniqueCategories);
+      })
+      .catch((err) => console.error("Error fetching inventory:", err));
   }, []);
-
-  const handleAddItem = (newItem) => {
-    axios.post("http://localhost:8080/api/inventory", newItem)
-      .then((res) => {
-        setItems((prev) => [...prev, res.data]);
-        setShowAdd(false);
-      })
-      .catch((err) => {
-        if (err.response && err.response.status === 409) {
-          alert("SKU ID already exists. Please try another.");
-        } else {
-          console.error("Add item error", err);
-          alert("Failed to add item.");
-        }
-      });
-  };
-
-  const handleBulkUpload = (uploadedItems) => {
-    axios.post("http://localhost:8080/api/inventory/bulk", uploadedItems)
-      .then((res) => {
-        setItems((prev) => [...prev, ...res.data]);
-        setShowBulk(false);
-      })
-      .catch((err) => console.error("Bulk upload failed", err));
-  };
 
   const handleExportReport = (headers, rows, type) => {
     const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
@@ -64,63 +47,44 @@ export default function InventoryDashboard() {
         <h1 className="text-2xl font-bold text-blue-700">DLVery Inventory Management</h1>
       </header>
 
-      {/* Modern Styled Top Navigation Bar */}
+      {/* Navigation Buttons */}
       <div className="bg-white px-8 py-3 shadow-sm border-b border-blue-100">
         <div className="flex gap-4">
           <button
-            onClick={() => setShowAdd(true)}
+            onClick={() => navigate("/inventory/add-item")}
             className="px-5 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
           >
             + Add Item
           </button>
           <button
-            onClick={() => setShowBulk(true)}
+            onClick={() => navigate("/inventory/bulk-upload")}
             className="px-5 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
           >
             Bulk Upload
           </button>
           <button
-            onClick={() => setShowTrack(true)}
+            onClick={() => navigate("/inventory/agent-assign")}
+            className="px-5 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
+          >
+            Delivery Assigning
+          </button>
+          <button
+            onClick={() => navigate("/inventory/track-delivery")}
             className="px-5 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
           >
             Track Delivery
-          </button>
-          <button
-            onClick={() => setShowAgentAssign(true)}
-            className="px-5 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
-          >
-            Agent Assigning
           </button>
         </div>
       </div>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-8 px-4">
-        <InventoryTable items={items} setItems={setItems} />
+        {/* ✅ Pass categories here */}
+        <InventoryTable items={items} setItems={setItems} categories={categories} />
         <div className="mt-12">
           <Reports onExport={handleExportReport} />
         </div>
       </main>
-
-      {/* Modals */}
-      {showAdd && <AddItemModal onClose={() => setShowAdd(false)} onAdd={handleAddItem} />}
-      {showBulk && <BulkUploadModal onClose={() => setShowBulk(false)} onUpload={handleBulkUpload} />}
-      {showTrack && <TrackDeliveryModal onClose={() => setShowTrack(false)} />}
-      {/* Placeholder: AgentAssignModal can be created later */}
-      {showAgentAssign && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg w-96">
-            <h2 className="text-lg font-semibold mb-4 text-blue-700">Agent Assigning (Coming Soon)</h2>
-            <p className="text-gray-600 mb-4">This feature is under development.</p>
-            <button
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              onClick={() => setShowAgentAssign(false)}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

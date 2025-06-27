@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import DeliveryCard from './DeliveryCard';
 import StatusUpdateModal from './StatusUpdateModal';
+import AgentProfileModal from './AgentProfileModal';
 
 export default function DeliveryDashboard() {
   const [activeTab, setActiveTab] = useState('today');
@@ -8,12 +9,20 @@ export default function DeliveryDashboard() {
   const [selectedDelivery, setSelectedDelivery] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showProfile, setShowProfile] = useState(false);
 
-  // Mock data - replace with actual API calls
+  const agentProfile = {
+    name: "D. Aravind",
+    email: "aravind.dlteam@example.com",
+    phone: "+91-9876543210",
+    deliveriesMade: 128,
+    region: "Chennai Zone 2",
+    joined: "2023-08-01",
+  };
+
   useEffect(() => {
     const fetchDeliveries = async () => {
       setLoading(true);
-      // Simulate API call
       setTimeout(() => {
         const mockDeliveries = [
           {
@@ -74,23 +83,19 @@ export default function DeliveryDashboard() {
 
   const handleStatusUpdate = async (deliveryId, newStatus, notes = '') => {
     try {
-      // Mock API call - replace with actual PUT request
-      console.log(`Updating delivery ${deliveryId} to status: ${newStatus}`);
-      
-      setDeliveries(prev => prev.map(d => 
-        d.id === deliveryId 
-          ? { ...d, status: newStatus, notes: notes || d.notes }
-          : d
-      ));
-      
+      setDeliveries(prev =>
+        prev.map(d =>
+          d.id === deliveryId
+            ? { ...d, status: newStatus, notes: notes || d.notes }
+            : d
+        )
+      );
       setShowStatusModal(false);
       setSelectedDelivery(null);
     } catch (error) {
-      console.error('Error updating delivery status:', error);
+      console.error('Status update error:', error);
     }
   };
-
- 
 
   if (loading) {
     return (
@@ -109,11 +114,25 @@ export default function DeliveryDashboard() {
       <header className="bg-white shadow-sm border-b border-blue-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <div>
-              <h1 className="text-2xl font-bold text-blue-700">Delivery Dashboard</h1>
-              <p className="text-sm text-blue-600">Agent: DLTeam</p>
+            <div className="flex items-center gap-4">
+              {/* Highlighted Profile Icon Button */}
+              <button
+                onClick={() => setShowProfile(true)}
+                className="w-10 h-10 rounded-full bg-blue-600 text-white shadow-md flex items-center justify-center hover:bg-blue-700 transition"
+                title="View Profile"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M5.121 17.804A4 4 0 015 16V8a4 4 0 014-4h6a4 4 0 014 4v8a4 4 0 01-.121.804M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+              <div>
+                <h1 className="text-2xl font-bold text-blue-700">Delivery Dashboard</h1>
+                <p className="text-sm text-blue-600">Agent: D. Aravind</p>
+              </div>
             </div>
-      
           </div>
         </div>
       </header>
@@ -157,7 +176,7 @@ export default function DeliveryDashboard() {
               }}
             />
           ))}
-          
+
           {(activeTab === 'today' ? todayDeliveries : pastDeliveries).length === 0 && (
             <div className="text-center py-12">
               <div className="text-blue-200 text-6xl mb-4">📦</div>
@@ -165,17 +184,16 @@ export default function DeliveryDashboard() {
                 No {activeTab === 'today' ? "today's" : 'past'} deliveries
               </h3>
               <p className="text-blue-400">
-                {activeTab === 'today' 
-                  ? "You're all caught up for today!" 
-                  : "No past deliveries to show."
-                }
+                {activeTab === 'today'
+                  ? "You're all caught up for today!"
+                  : "No past deliveries to show."}
               </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Status Update Modal */}
+      {/* Modals */}
       {showStatusModal && selectedDelivery && (
         <StatusUpdateModal
           delivery={selectedDelivery}
@@ -187,7 +205,12 @@ export default function DeliveryDashboard() {
         />
       )}
 
-  
+      {showProfile && (
+        <AgentProfileModal
+          profile={agentProfile}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
     </div>
   );
-} 
+}
