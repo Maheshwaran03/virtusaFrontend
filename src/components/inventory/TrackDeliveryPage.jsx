@@ -11,16 +11,17 @@ export default function TrackDelivery() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get("http://localhost:8080/api/delivery")
+    axios
+      .get("http://localhost:8080/api/delivery")
       .then((res) => {
         setDeliveries(res.data);
         setFilteredDeliveries(res.data);
       })
-      .catch(err => console.error("Fetch error:", err));
+      .catch((err) => console.error("Fetch error:", err));
   }, []);
 
   const handleSearch = () => {
-    const filtered = deliveries.filter(d =>
+    const filtered = deliveries.filter((d) =>
       (sku ? d.sku.toLowerCase().includes(sku.toLowerCase()) : true) &&
       (agent ? d.agent.toLowerCase().includes(agent.toLowerCase()) : true)
     );
@@ -33,7 +34,7 @@ export default function TrackDelivery() {
         <h2 className="text-2xl font-bold text-blue-800">Track Delivery</h2>
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          onClick={() => navigate('/inventory-dashboard')}
+          onClick={() => navigate("/inventory-dashboard")}
         >
           ← Back to Dashboard
         </button>
@@ -65,7 +66,9 @@ export default function TrackDelivery() {
 
       {/* Table Section */}
       <div className="bg-white p-4 rounded shadow">
-        <h3 className="text-xl font-semibold mb-4 text-center">Delivery Records</h3>
+        <h3 className="text-xl font-semibold mb-4 text-center">
+          Delivery Records
+        </h3>
 
         <div className="overflow-x-auto">
           <table className="w-full border border-collapse text-sm">
@@ -75,6 +78,7 @@ export default function TrackDelivery() {
                 <th className="border px-4 py-2">Agent</th>
                 <th className="border px-4 py-2">Quantity</th>
                 <th className="border px-4 py-2">Customer</th>
+                <th className="border px-4 py-2">Mobile</th>
                 <th className="border px-4 py-2">Address</th>
                 <th className="border px-4 py-2">Status</th>
                 <th className="border px-4 py-2">Damaged</th>
@@ -89,17 +93,16 @@ export default function TrackDelivery() {
                     <td className="border px-2 py-1">{item.agent}</td>
                     <td className="border px-2 py-1">{item.quantity}</td>
                     <td className="border px-2 py-1">{item.customerName}</td>
+                    <td className="border px-2 py-1">{item.customerMobile || "-"}</td>
                     <td className="border px-2 py-1">{item.customerAddress}</td>
                     <td className="border px-2 py-1">{item.status}</td>
-                    <td className="border px-2 py-1">
-                      {item.damaged ? item.damaged : 0}
-                    </td>
+                    <td className="border px-2 py-1">{item.damaged || 0}</td>
                     <td className="border px-2 py-1">{item.date}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="text-center py-4 text-gray-500 border">
+                  <td colSpan="9" className="text-center py-4 text-gray-500 border">
                     No data found.
                   </td>
                 </tr>

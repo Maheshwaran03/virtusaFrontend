@@ -8,10 +8,12 @@ export default function AgentAssign() {
   const [quantity, setQuantity] = useState(1);
   const [agent, setAgent] = useState("");
   const [customerName, setCustomerName] = useState("");
+  const [customerMobile, setCustomerMobile] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
   const [date, setDate] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [agentFilter, setAgentFilter] = useState("");
+  const [editingId, setEditingId] = useState(null);
 
   const navigate = useNavigate();
 
@@ -22,12 +24,24 @@ export default function AgentAssign() {
       .catch((err) => console.error("Delivery list load failed", err));
   }, []);
 
+  const resetForm = () => {
+    setSku("");
+    setQuantity(1);
+    setAgent("");
+    setCustomerName("");
+    setCustomerMobile("");
+    setCustomerAddress("");
+    setDate("");
+    setEditingId(null);
+  };
+
   const handleAssign = () => {
     if (
       !sku.trim() ||
       quantity <= 0 ||
       !agent.trim() ||
       !customerName.trim() ||
+      !customerMobile.trim() ||
       !customerAddress.trim() ||
       !date
     ) {
@@ -40,23 +54,42 @@ export default function AgentAssign() {
       quantity,
       agent,
       customerName,
+      customerMobile,
       customerAddress,
       date,
     };
 
-    axios
-      .post("http://localhost:8080/api/delivery", payload)
-      .then((res) => {
-        setAssignments((prev) => [...prev, res.data]);
-        // Reset fields
-        setSku("");
-        setQuantity(1);
-        setAgent("");
-        setCustomerName("");
-        setCustomerAddress("");
-        setDate("");
-      })
-      .catch((err) => console.error("Assignment failed", err));
+    if (editingId !== null) {
+      axios
+        .put(`http://localhost:8080/api/delivery/${editingId}`, payload)
+        .then((res) => {
+          const updated = assignments.map((item) =>
+            item.id === editingId ? res.data : item
+          );
+          setAssignments(updated);
+          resetForm();
+        })
+        .catch((err) => console.error("Update failed", err));
+    } else {
+      axios
+        .post("http://localhost:8080/api/delivery", payload)
+        .then((res) => {
+          setAssignments((prev) => [...prev, res.data]);
+          resetForm();
+        })
+        .catch((err) => console.error("Assignment failed", err));
+    }
+  };
+
+  const handleEdit = (item) => {
+    setSku(item.sku);
+    setQuantity(item.quantity);
+    setAgent(item.agent);
+    setCustomerName(item.customerName);
+    setCustomerMobile(item.customerMobile || "");
+    setCustomerAddress(item.customerAddress);
+    setDate(item.date);
+    setEditingId(item.id);
   };
 
   const filteredAssignments = assignments.filter((a) =>
@@ -91,7 +124,7 @@ export default function AgentAssign() {
             type="number"
             placeholder="Quantity"
             value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
+            onChange={(e) => setQuantity(Number(e.target.value))}
             className="border px-4 py-2 rounded w-24"
           />
           <input
@@ -110,6 +143,13 @@ export default function AgentAssign() {
           />
           <input
             type="text"
+            placeholder="Customer Mobile"
+            value={customerMobile}
+            onChange={(e) => setCustomerMobile(e.target.value)}
+            className="border px-4 py-2 rounded"
+          />
+          <input
+            type="text"
             placeholder="Customer Address"
             value={customerAddress}
             onChange={(e) => setCustomerAddress(e.target.value)}
@@ -123,12 +163,18 @@ export default function AgentAssign() {
           />
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={resetForm}
+            className="bg-gray-300 text-black px-6 py-2 rounded hover:bg-gray-400"
+          >
+            Cancel
+          </button>
           <button
             onClick={handleAssign}
             className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
           >
-            Assign
+            {editingId !== null ? "Update" : "Assign"}
           </button>
         </div>
       </div>
@@ -162,25 +208,38 @@ export default function AgentAssign() {
           <table className="w-full border border-collapse text-sm">
             <thead>
               <tr className="bg-blue-100 text-center">
+                <th className="border px-4 py-2">#</th>
                 <th className="border px-4 py-2">SKU</th>
                 <th className="border px-4 py-2">Quantity</th>
                 <th className="border px-4 py-2">Agent</th>
                 <th className="border px-4 py-2">Customer</th>
+                <th className="border px-4 py-2">Mobile</th>
                 <th className="border px-4 py-2">Address</th>
                 <th className="border px-4 py-2">Date</th>
                 <th className="border px-4 py-2">Status</th>
+                <th className="border px-4 py-2">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredAssignments.map((a, idx) => (
-                <tr key={idx} className="text-center">
+                <tr key={a.id || idx} className="text-center">
+                  <td className="border px-2 py-1">{idx + 1}</td>
                   <td className="border px-2 py-1">{a.sku}</td>
                   <td className="border px-2 py-1">{a.quantity}</td>
                   <td className="border px-2 py-1">{a.agent}</td>
                   <td className="border px-2 py-1">{a.customerName}</td>
+                  <td className="border px-2 py-1">{a.customerMobile}</td>
                   <td className="border px-2 py-1">{a.customerAddress}</td>
                   <td className="border px-2 py-1">{a.date}</td>
                   <td className="border px-2 py-1">{a.status}</td>
+                  <td className="border px-2 py-1">
+                    <button
+                      className="bg-yellow-400 px-3 py-1 rounded text-white hover:bg-yellow-500"
+                      onClick={() => handleEdit(a)}
+                    >
+                      Edit
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
