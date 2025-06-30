@@ -19,7 +19,6 @@ export default function InventoryDashboard() {
         console.log("Fetched inventory items:", res.data.length);
         setItems(res.data);
 
-        // ✅ Extract unique categories
         const uniqueCategories = [
           ...new Set(res.data.map((item) => item.category).filter(Boolean)),
         ];
@@ -43,34 +42,39 @@ export default function InventoryDashboard() {
   return (
     <div className="min-h-screen bg-blue-50">
       {/* Top Header */}
-      <header className="bg-white shadow px-8 py-4 border-b border-blue-100">
-        <h1 className="text-2xl font-bold text-blue-700">DLVery Inventory Management</h1>
+      <header className="bg-white shadow px-4 sm:px-8 py-4 border-b border-blue-100">
+        <div className="flex items-center gap-3">
+          <img src="/logo.png" alt="Logo" className="h-10 w-auto" />
+          <h1 className="text-xl sm:text-2xl font-bold text-blue-700">
+            Inventory Management
+          </h1>
+        </div>
       </header>
 
       {/* Navigation Buttons */}
-      <div className="bg-white px-8 py-3 shadow-sm border-b border-blue-100">
-        <div className="flex gap-4">
+      <div className="bg-white px-4 sm:px-8 py-3 shadow-sm border-b border-blue-100">
+        <div className="flex flex-wrap gap-2 sm:gap-4">
           <button
             onClick={() => navigate("/inventory/add-item")}
-            className="px-5 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
+            className="w-full sm:w-auto px-4 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
           >
             + Add Item
           </button>
           <button
             onClick={() => navigate("/inventory/bulk-upload")}
-            className="px-5 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
+            className="w-full sm:w-auto px-4 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
           >
             Bulk Upload
           </button>
           <button
             onClick={() => navigate("/inventory/agent-assign")}
-            className="px-5 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
+            className="w-full sm:w-auto px-4 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
           >
             Delivery Assigning
           </button>
           <button
             onClick={() => navigate("/inventory/track-delivery")}
-            className="px-5 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
+            className="w-full sm:w-auto px-4 py-2 bg-blue-100 text-blue-700 font-medium rounded-full shadow-sm hover:bg-blue-200 transition-all duration-200"
           >
             Track Delivery
           </button>
@@ -78,8 +82,7 @@ export default function InventoryDashboard() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-8 px-4">
-        {/* ✅ Pass categories here */}
+      <main className="w-full max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <InventoryTable items={items} setItems={setItems} categories={categories} />
         <div className="mt-12">
           <Reports onExport={handleExportReport} />

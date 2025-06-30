@@ -1,14 +1,11 @@
+// src/components/inventory/InventoryTable.jsx
+
 import { useState } from "react";
 import axios from "axios";
 import { differenceInDays, parseISO } from "date-fns";
 
 export default function InventoryTable({ items, setItems, categories = [] }) {
-  const [filters, setFilters] = useState({
-    category: "",
-    damaged: "",
-    isPerishable: "",
-  });
-
+  const [filters, setFilters] = useState({ category: "", damaged: "", isPerishable: "" });
   const [searchQuery, setSearchQuery] = useState("");
   const [editingItem, setEditingItem] = useState(null);
   const [recordsPerPage, setRecordsPerPage] = useState(10);
@@ -37,14 +34,9 @@ export default function InventoryTable({ items, setItems, categories = [] }) {
 
   const handleSaveChanges = async () => {
     try {
-      await axios.put(
-        `http://localhost:8080/api/inventory/${editingItem.id}`,
-        editingItem
-      );
+      await axios.put(`http://localhost:8080/api/inventory/${editingItem.id}`, editingItem);
       setItems((prevItems) =>
-        prevItems.map((item) =>
-          item.id === editingItem.id ? editingItem : item
-        )
+        prevItems.map((item) => (item.id === editingItem.id ? editingItem : item))
       );
       setEditingItem(null);
     } catch (error) {
@@ -72,9 +64,7 @@ export default function InventoryTable({ items, setItems, categories = [] }) {
     if (item.expiryDate) {
       const expiry = parseISO(item.expiryDate);
       const daysUntilExpiry = differenceInDays(expiry, today);
-      if (daysUntilExpiry <= 60) {
-        alerts.push(`Expires in ${daysUntilExpiry} day(s)`);
-      }
+      if (daysUntilExpiry <= 60) alerts.push(`Expires in ${daysUntilExpiry} day(s)`);
     }
 
     if (item.quantity < 20) alerts.push("Low stock");
@@ -89,18 +79,7 @@ export default function InventoryTable({ items, setItems, categories = [] }) {
       return item.quantity < 20 || daysUntilExpiry <= 60;
     });
 
-    const headers = [
-      "Item Name",
-      "SKU",
-      "Category",
-      "Batch",
-      "Quantity",
-      "Expiry Date",
-      "Perishable",
-      "Damaged",
-      "Alert",
-    ];
-
+    const headers = ["Item Name", "SKU", "Category", "Batch", "Quantity", "Expiry Date", "Perishable", "Damaged", "Alert"];
     const rows = alertItems.map((item) => [
       item.itemName,
       item.sku,
@@ -124,143 +103,81 @@ export default function InventoryTable({ items, setItems, categories = [] }) {
     document.body.removeChild(link);
   };
 
-  // Filtering
- const filteredItems = items.filter((item) => {
-  const query = searchQuery.toLowerCase().trim();
+  const filteredItems = items.filter((item) => {
+    const query = searchQuery.toLowerCase().trim();
+    const matchesSearch =
+      item.itemName?.toLowerCase().includes(query) ||
+      item.sku?.toLowerCase().includes(query) ||
+      item.category?.toLowerCase().includes(query) ||
+      item.batch?.toLowerCase().includes(query);
 
-  const matchesSearch =
-    item.itemName?.toLowerCase().includes(query) ||
-    item.sku?.toLowerCase().includes(query) ||
-    item.category?.toLowerCase().includes(query) ||
-    item.batch?.toLowerCase().includes(query);
+    return (
+      (!filters.category || item.category === filters.category) &&
+      (!filters.damaged || (filters.damaged === "0" ? item.damaged === 0 : item.damaged > 0)) &&
+      (!filters.isPerishable || (filters.isPerishable === "true" ? item.isPerishable : !item.isPerishable)) &&
+      matchesSearch
+    );
+  });
 
-  return (
-    (!filters.category || item.category === filters.category) &&
-    (!filters.damaged ||
-      (filters.damaged === "0" ? item.damaged === 0 : item.damaged > 0)) &&
-    (!filters.isPerishable ||
-      (filters.isPerishable === "true"
-        ? item.isPerishable === true
-        : item.isPerishable === false)) &&
-    matchesSearch
-  );
-});
-
-
-  // Pagination
   const indexOfLastItem = currentPage * recordsPerPage;
   const indexOfFirstItem = indexOfLastItem - recordsPerPage;
   const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
 
   const handlePageChange = (direction) => {
     const maxPage = Math.ceil(filteredItems.length / recordsPerPage);
-    setCurrentPage((prev) =>
-      direction === "prev" ? Math.max(prev - 1, 1) : Math.min(prev + 1, maxPage)
-    );
+    setCurrentPage((prev) => (direction === "prev" ? Math.max(prev - 1, 1) : Math.min(prev + 1, maxPage)));
   };
 
   return (
-    <div className="bg-white rounded shadow p-6">
+    <div className="bg-white rounded shadow p-4 sm:p-6">
       <h2 className="text-xl font-semibold mb-4">Inventory</h2>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-4 items-center">
-        <select
-          className="border rounded px-2 py-1"
-          value={filters.category}
-          onChange={(e) =>
-            setFilters((f) => ({ ...f, category: e.target.value }))
-          }
-        >
+      <div className="flex flex-col md:flex-row flex-wrap gap-4 mb-4 items-center">
+        <select className="border rounded px-2 py-1" value={filters.category} onChange={(e) => setFilters((f) => ({ ...f, category: e.target.value }))}>
           <option value="">All Categories</option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
-            </option>
-          ))}
+          {categories.map((cat) => (<option key={cat} value={cat}>{cat}</option>))}
         </select>
 
-
-
-
-
-        
-
-        <select
-          className="border rounded px-2 py-1"
-          value={filters.damaged}
-          onChange={(e) => setFilters((f) => ({ ...f, damaged: e.target.value }))}
-        >
+        <select className="border rounded px-2 py-1" value={filters.damaged} onChange={(e) => setFilters((f) => ({ ...f, damaged: e.target.value }))}>
           <option value="">All</option>
           <option value="1">Damaged</option>
           <option value="0">Not Damaged</option>
         </select>
 
-        <select
-          className="border rounded px-2 py-1"
-          value={filters.isPerishable}
-          onChange={(e) =>
-            setFilters((f) => ({ ...f, isPerishable: e.target.value }))
-          }
-        >
+        <select className="border rounded px-2 py-1" value={filters.isPerishable} onChange={(e) => setFilters((f) => ({ ...f, isPerishable: e.target.value }))}>
           <option value="">All</option>
           <option value="true">Perishable</option>
           <option value="false">Non-Perishable</option>
         </select>
 
-       <input
-  type="text"
-  placeholder="Search"
-  className="border rounded px-2 py-1 w-48"
-  value={searchQuery}
-  onChange={(e) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1);
-  }}
-/>
+        <input type="text" placeholder="Search" className="border rounded px-2 py-1 w-full sm:w-48" value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} />
 
+        <button className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700" onClick={handleAlertReport}>Stock Report</button>
 
-        <button
-          className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-          onClick={handleAlertReport}
-        >
-          Stock Report
-        </button>
-
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-0 md:ml-auto">
           <label className="text-sm text-gray-600">Records/Page:</label>
-          <input
-            type="number"
-            className="border px-2 py-1 w-16 rounded"
-            min="1"
-            value={recordsPerPage}
-            onChange={(e) => {
-              setRecordsPerPage(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-          />
+          <input type="number" className="border px-2 py-1 w-16 rounded" min="1" value={recordsPerPage} onChange={(e) => { setRecordsPerPage(Number(e.target.value)); setCurrentPage(1); }} />
         </div>
       </div>
 
-      {/* Table */}
-      <table className="w-full table-auto mb-6 border">
-        <thead>
-          <tr className="bg-gray-100 text-left">
-            <th className="px-2 py-1">Item Name</th>
-            <th className="px-2 py-1">SKU</th>
-            <th className="px-2 py-1">Category</th>
-            <th className="px-2 py-1">Batch</th>
-            <th className="px-2 py-1">Quantity</th>
-            <th className="px-2 py-1">Expiry</th>
-            <th className="px-2 py-1">Perishable</th>
-            <th className="px-2 py-1">Damaged</th>
-            <th className="px-2 py-1 text-red-600">Alerts</th>
-            <th className="px-2 py-1">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentItems.length > 0 ? (
-            currentItems.map((item) => (
+      <div className="overflow-x-auto">
+        <table className="w-full table-auto mb-6 border text-sm">
+          <thead>
+            <tr className="bg-gray-100 text-left">
+              <th className="px-2 py-1">Item Name</th>
+              <th className="px-2 py-1">SKU</th>
+              <th className="px-2 py-1">Category</th>
+              <th className="px-2 py-1">Batch</th>
+              <th className="px-2 py-1">Quantity</th>
+              <th className="px-2 py-1">Expiry</th>
+              <th className="px-2 py-1">Perishable</th>
+              <th className="px-2 py-1">Damaged</th>
+              <th className="px-2 py-1 text-red-600">Alerts</th>
+              <th className="px-2 py-1">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentItems.length > 0 ? currentItems.map((item) => (
               <tr key={item.id} className="border-b">
                 <td className="px-2 py-1">{item.itemName}</td>
                 <td className="px-2 py-1">{item.sku}</td>
@@ -272,129 +189,40 @@ export default function InventoryTable({ items, setItems, categories = [] }) {
                 <td className="px-2 py-1">{item.damaged}</td>
                 <td className="px-2 py-1 text-red-600">{getAlert(item)}</td>
                 <td className="px-2 py-1">
-                  <button
-                    className="text-blue-600 hover:underline mr-2"
-                    onClick={() => handleEditClick(item)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="text-red-600 hover:underline"
-                    onClick={() => handleDelete(item.id)}
-                  >
-                    Delete
-                  </button>
+                  <button className="text-blue-600 hover:underline mr-2" onClick={() => handleEditClick(item)}>Edit</button>
+                  <button className="text-red-600 hover:underline" onClick={() => handleDelete(item.id)}>Delete</button>
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="10" className="text-center py-2 text-gray-500">
-                No items found.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-
-      {/* Pagination */}
-      <div className="flex justify-end gap-4 mb-4">
-        <button
-          className="px-3 py-1 border rounded hover:bg-gray-100"
-          onClick={() => handlePageChange("prev")}
-          disabled={currentPage === 1}
-        >
-          Previous
-        </button>
-        <button
-          className="px-3 py-1 border rounded hover:bg-gray-100"
-          onClick={() => handlePageChange("next")}
-          disabled={indexOfLastItem >= filteredItems.length}
-        >
-          Next
-        </button>
+            )) : (
+              <tr><td colSpan="10" className="text-center py-2 text-gray-500">No items found.</td></tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
-      {/* Edit Form */}
+      <div className="flex justify-end gap-4 mb-4">
+        <button className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50" onClick={() => handlePageChange("prev")} disabled={currentPage === 1}>Previous</button>
+        <button className="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50" onClick={() => handlePageChange("next")} disabled={indexOfLastItem >= filteredItems.length}>Next</button>
+      </div>
+
       {editingItem && (
         <div className="border-t pt-4">
           <h3 className="text-lg font-semibold mb-2">Edit Item</h3>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <input
-              className="border px-2 py-1"
-              name="itemName"
-              value={editingItem.itemName}
-              onChange={handleInputChange}
-              placeholder="Item Name"
-            />
-            <input
-              className="border px-2 py-1"
-              name="sku"
-              value={editingItem.sku}
-              onChange={handleInputChange}
-              placeholder="SKU"
-            />
-            <input
-              className="border px-2 py-1"
-              name="category"
-              value={editingItem.category}
-              onChange={handleInputChange}
-              placeholder="Category"
-            />
-            <input
-              className="border px-2 py-1"
-              name="batch"
-              value={editingItem.batch}
-              onChange={handleInputChange}
-              placeholder="Batch"
-            />
-            <input
-              className="border px-2 py-1"
-              name="quantity"
-              type="number"
-              min="0"
-              value={editingItem.quantity}
-              onChange={handleInputChange}
-              placeholder="Quantity"
-            />
-            <input
-              className="border px-2 py-1"
-              name="expiryDate"
-              type="date"
-              value={editingItem.expiryDate}
-              onChange={handleInputChange}
-            />
-            <select
-              className="border px-2 py-1"
-              name="isPerishable"
-              value={String(editingItem.isPerishable)}
-              onChange={handleInputChange}
-            >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <input className="border px-2 py-1" name="itemName" value={editingItem.itemName} onChange={handleInputChange} placeholder="Item Name" />
+            <input className="border px-2 py-1" name="sku" value={editingItem.sku} onChange={handleInputChange} placeholder="SKU" />
+            <input className="border px-2 py-1" name="category" value={editingItem.category} onChange={handleInputChange} placeholder="Category" />
+            <input className="border px-2 py-1" name="batch" value={editingItem.batch} onChange={handleInputChange} placeholder="Batch" />
+            <input className="border px-2 py-1" name="quantity" type="number" min="0" value={editingItem.quantity} onChange={handleInputChange} placeholder="Quantity" />
+            <input className="border px-2 py-1" name="expiryDate" type="date" value={editingItem.expiryDate} onChange={handleInputChange} />
+            <select className="border px-2 py-1" name="isPerishable" value={String(editingItem.isPerishable)} onChange={handleInputChange}>
               <option value="true">Perishable</option>
               <option value="false">Non-Perishable</option>
             </select>
-            <input
-              className="border px-2 py-1"
-              name="damaged"
-              type="number"
-              min="0"
-              value={editingItem.damaged}
-              onChange={handleInputChange}
-              placeholder="Damaged Count"
-            />
+            <input className="border px-2 py-1" name="damaged" type="number" min="0" value={editingItem.damaged} onChange={handleInputChange} placeholder="Damaged Count" />
           </div>
-          <button
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            onClick={handleSaveChanges}
-          >
-            Save Changes
-          </button>
-          <button
-            className="ml-2 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-            onClick={() => setEditingItem(null)}
-          >
-            Cancel
-          </button>
+          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={handleSaveChanges}>Save Changes</button>
+          <button className="ml-2 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600" onClick={() => setEditingItem(null)}>Cancel</button>
         </div>
       )}
     </div>

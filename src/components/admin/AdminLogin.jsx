@@ -38,10 +38,20 @@ export default function AdminLogin() {
       style={{ backgroundImage: "url('/bg-login-light.png')" }}
     >
       <div className="bg-white bg-opacity-90 p-8 rounded-lg shadow-lg w-full max-w-md border border-blue-100 backdrop-blur-md">
+        
+        {/* Logo */}
+        <div className="flex justify-center mb-4">
+          <img
+            src="/logo.png"
+            alt="Company Logo"
+            className="h-12 w-auto"
+          />
+        </div>
+
         <h2 className="text-3xl font-bold mb-6 text-center text-blue-700">Admin Login</h2>
 
         <div className="flex justify-between mb-6 gap-2">
-         <button
+          <button
             onClick={() => navigate('/login?view=inventory')}
             className="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition"
           >
@@ -53,7 +63,6 @@ export default function AdminLogin() {
           >
             Delivery Login
           </button>
-         
         </div>
 
         {error && (

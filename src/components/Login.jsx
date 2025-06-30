@@ -85,10 +85,12 @@ export default function Login() {
   };
 
   return (
+    
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
       style={{ backgroundImage: "url('/bg-login-light.png')" }}
     >
+    
       <div className="bg-white bg-opacity-90 p-8 rounded-lg shadow-md w-full max-w-md border border-blue-100 backdrop-blur-md">
         {view === 'inventory' && (
           <>
