@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { app } from '../firebase';
+// import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+// import { app } from '../firebase';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-
+import { useGoogleLogin } from '@react-oauth/google';
 export default function Login() {
   const [view, setView] = useState('main'); // 'main', 'inventory', or 'delivery'
   const [invUsername, setInvUsername] = useState('');
@@ -48,41 +48,26 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setError('');
-    try {
-      const auth = getAuth(app);
-      await auth.signOut();
+  const handleGoogleSignIn = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const response = await axios.post('http://localhost:8080/api/oauth/google', {
+          access_token: tokenResponse.access_token,
+        });
 
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: 'select_account',
-        access_type: 'offline',
-        include_granted_scopes: 'true'
-      });
-      provider.addScope('email');
-      provider.addScope('profile');
-
-      const result = await signInWithPopup(auth, provider);
-      localStorage.setItem('userType', 'DLTeam');
-      localStorage.setItem('userEmail', result.user.email);
-      navigate('/delivery-dashboard');
-    } catch (err) {
-      let errorMessage = 'Google login failed. Please try again.';
-      if (err.code === 'auth/popup-closed-by-user') {
-        errorMessage = 'Login cancelled. Please try again.';
-      } else if (err.code === 'auth/popup-blocked') {
-        errorMessage = 'Popup blocked by browser. Please allow popups and try again.';
-      } else if (err.code === 'auth/unauthorized-domain') {
-        errorMessage = 'This domain is not authorized for Google sign-in.';
-      } else if (err.code === 'auth/network-request-failed') {
-        errorMessage = 'Network error. Please check your internet connection.';
-      } else if (err.code) {
-        errorMessage = `Login error: ${err.code}`;
+        const { email, name } = response.data;
+        localStorage.setItem('userType', 'DLTeam');
+        localStorage.setItem('userEmail', email);
+        localStorage.setItem('userName', name);
+        navigate('/delivery-dashboard');
+      } catch (err) {
+        console.error('Google OAuth failed', err);
+        setError('Google sign-in failed');
       }
-      setError(errorMessage);
-    }
-  };
+    },
+    onError: () => setError('Google login cancelled or failed'),
+    scope: 'email profile',
+  });
 
   return (
     
@@ -138,7 +123,7 @@ export default function Login() {
             <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">Delivery Login</h2>
             {error && <div className="mb-4 text-red-500 text-center">{error}</div>}
             <button
-              onClick={handleGoogleLogin}
+              onClick={handleGoogleSignIn}
               className="w-full flex items-center justify-center gap-2 bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
             >
               <svg className="w-5 h-5" viewBox="0 0 48 48">
