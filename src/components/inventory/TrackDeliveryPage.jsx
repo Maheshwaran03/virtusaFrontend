@@ -7,6 +7,7 @@ export default function TrackDelivery() {
   const [agent, setAgent] = useState("");
   const [deliveries, setDeliveries] = useState([]);
   const [inventoryItems, setInventoryItems] = useState([]);
+  const [agents, setAgents] = useState([]);
   const [filteredDeliveries, setFilteredDeliveries] = useState([]);
   const [selectedSignature, setSelectedSignature] = useState(null);
   const [selectedSignatureName, setSelectedSignatureName] = useState("");
@@ -24,6 +25,10 @@ export default function TrackDelivery() {
     axios.get("http://localhost:8080/api/inventory")
       .then((res) => setInventoryItems(res.data))
       .catch((err) => console.error("Inventory fetch failed", err));
+
+    axios.get("http://localhost:8080/api/delivery/agents")
+      .then((res) => setAgents(res.data))
+      .catch((err) => console.error("Agent list fetch failed", err));
   }, []);
 
   const handleSearch = () => {
@@ -49,7 +54,7 @@ export default function TrackDelivery() {
       idx + 1,
       item.sku,
       getProductName(item.sku),
-      item.agent,
+      getAgentName(item.agent),
       item.quantity,
       item.customerName,
       item.customerMobile || "-",
@@ -90,6 +95,11 @@ export default function TrackDelivery() {
     return item ? item.itemName : "N/A";
   };
 
+  const getAgentName = (email) => {
+    const agentObj = agents.find((a) => a.email === email);
+    return agentObj ? agentObj.name : email;
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case "delivered": return "text-green-700 font-semibold";
@@ -126,59 +136,60 @@ export default function TrackDelivery() {
         </button>
       </div>
 
+      {/* Search Inputs */}
       <div className="flex flex-wrap gap-3 mb-6 items-center">
- <div className="relative">
-  <input
-    list="sku-options"
-    type="text"
-    placeholder="Search by SKU"
-    value={sku}
-    onChange={(e) => setSku(e.target.value)}
-    className="border rounded px-3 h-10 w-52"
-  />
-  <datalist id="sku-options">
-    {inventoryItems.map((item, idx) => (
-      <option key={idx} value={item.sku}>
-        {item.itemName}
-      </option>
-    ))}
-  </datalist>
-  {sku && (
-    <div className="absolute top-full mt-1 text-xs italic text-gray-600 whitespace-nowrap">
-      Product: {getProductName(sku)}
-    </div>
-  )}
-</div>
+        <div className="relative">
+          <input
+            list="sku-options"
+            type="text"
+            placeholder="Search by SKU"
+            value={sku}
+            onChange={(e) => setSku(e.target.value)}
+            className="border rounded px-3 h-10 w-52"
+          />
+          <datalist id="sku-options">
+            {inventoryItems.map((item, idx) => (
+              <option key={idx} value={item.sku}>
+                {item.itemName}
+              </option>
+            ))}
+          </datalist>
+          {sku && (
+            <div className="absolute top-full mt-1 text-xs italic text-gray-600 whitespace-nowrap">
+              Product: {getProductName(sku)}
+            </div>
+          )}
+        </div>
 
+        <input
+          type="text"
+          placeholder="Search by Agent"
+          value={agent}
+          onChange={(e) => setAgent(e.target.value)}
+          className="border rounded px-3 h-10 w-52"
+        />
 
-  <input
-    type="text"
-    placeholder="Search by Agent"
-    value={agent}
-    onChange={(e) => setAgent(e.target.value)}
-    className="border rounded px-3 h-10 w-52"
-  />
-  <button
-    onClick={handleSearch}
-    className="bg-blue-600 text-white px-4 h-10 rounded hover:bg-blue-700"
-  >
-    Search
-  </button>
-  <button
-    onClick={handleClear}
-    className="bg-gray-300 text-black px-4 h-10 rounded hover:bg-gray-400"
-  >
-    Clear
-  </button>
-  <button
-    onClick={handleDownloadCSV}
-    className="bg-red-600 text-white px-4 h-10 rounded hover:bg-red-700"
-  >
-    Download Records
-  </button>
-</div>
+        <button
+          onClick={handleSearch}
+          className="bg-blue-600 text-white px-4 h-10 rounded hover:bg-blue-700"
+        >
+          Search
+        </button>
+        <button
+          onClick={handleClear}
+          className="bg-gray-300 text-black px-4 h-10 rounded hover:bg-gray-400"
+        >
+          Clear
+        </button>
+        <button
+          onClick={handleDownloadCSV}
+          className="bg-red-600 text-white px-4 h-10 rounded hover:bg-red-700"
+        >
+          Download Records
+        </button>
+      </div>
 
-
+      {/* Delivery Table */}
       <div className="bg-white p-4 rounded shadow">
         <h3 className="text-xl font-semibold mb-4 text-center text-blue-700">Delivery Records</h3>
 
@@ -208,7 +219,7 @@ export default function TrackDelivery() {
                     <td className="border px-2 py-1">{idx + 1}</td>
                     <td className="border px-2 py-1">{item.sku}</td>
                     <td className="border px-2 py-1">{getProductName(item.sku)}</td>
-                    <td className="border px-2 py-1">{item.agent}</td>
+                    <td className="border px-2 py-1">{getAgentName(item.agent)}</td>
                     <td className="border px-2 py-1">{item.quantity}</td>
                     <td className="border px-2 py-1">{item.customerName}</td>
                     <td className="border px-2 py-1">{item.customerMobile || "-"}</td>

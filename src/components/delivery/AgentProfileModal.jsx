@@ -1,8 +1,9 @@
-// AgentProfileModal.jsx
 import { useState } from 'react';
+import axios from 'axios';
 
 export default function AgentProfileModal({ profile, onClose }) {
   const [formData, setFormData] = useState({ ...profile });
+  const [saving, setSaving] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -12,10 +13,33 @@ export default function AgentProfileModal({ profile, onClose }) {
     }));
   };
 
-  const handleSave = () => {
-    // Here you can send formData to backend API using axios
-    console.log("Updated Profile:", formData);
-    onClose(); // Close modal after save
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // Save updated name and phone to backend
+      await axios.put(`http://localhost:8080/api/delivery/profile?email=${formData.email}`, {
+        name: formData.name,
+        mobileNumber: formData.phone,
+      });
+
+      // Fetch latest profile to get updated delivery count and display
+      const res = await axios.get(`http://localhost:8080/api/delivery/profile?email=${formData.email}`);
+      setFormData({
+        name: res.data.name,
+        email: res.data.email,
+        phone: res.data.phone,
+        joined: res.data.joined,
+        deliveriesMade: res.data.deliveriesMade,
+      });
+
+      alert("Profile updated successfully");
+      onClose();
+    } catch (err) {
+      console.error("Failed to update profile", err);
+      alert("Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -40,8 +64,8 @@ export default function AgentProfileModal({ profile, onClose }) {
               type="email"
               name="email"
               value={formData.email}
-              onChange={handleChange}
-              className="w-full border border-blue-200 rounded px-3 py-2"
+              disabled
+              className="w-full border border-gray-200 bg-gray-100 text-gray-600 rounded px-3 py-2"
             />
           </div>
           <div>
@@ -55,23 +79,13 @@ export default function AgentProfileModal({ profile, onClose }) {
             />
           </div>
           <div>
-            <label className="block text-sm text-blue-600">Region</label>
-            <input
-              type="text"
-              name="region"
-              value={formData.region}
-              onChange={handleChange}
-              className="w-full border border-blue-200 rounded px-3 py-2"
-            />
-          </div>
-          <div>
             <label className="block text-sm text-blue-600">Deliveries Made</label>
             <input
               type="number"
               name="deliveriesMade"
               value={formData.deliveriesMade}
-              onChange={handleChange}
-              className="w-full border border-blue-200 rounded px-3 py-2"
+              disabled
+              className="w-full border border-gray-200 bg-gray-100 text-gray-600 rounded px-3 py-2"
             />
           </div>
           <div>
@@ -94,9 +108,10 @@ export default function AgentProfileModal({ profile, onClose }) {
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            disabled={saving}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-60"
           >
-            Save Changes
+            {saving ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </div>

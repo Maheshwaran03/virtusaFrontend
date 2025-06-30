@@ -4,14 +4,15 @@ import axios from 'axios';
 import { useGoogleLogin } from '@react-oauth/google';
 
 export default function Login() {
-  const [view, setView] = useState('main'); // 'main', 'inventory', or 'delivery'
+  const [view, setView] = useState('main');
   const [invUsername, setInvUsername] = useState('');
   const [invPassword, setInvPassword] = useState('');
   const [error, setError] = useState('');
-  const [isRegister, setIsRegister] = useState(false); // toggle for delivery register/login
+  const [isRegister, setIsRegister] = useState(false);
   const [agentName, setAgentName] = useState('');
   const [agentEmail, setAgentEmail] = useState('');
   const [agentPassword, setAgentPassword] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -24,44 +25,51 @@ export default function Login() {
     }
   }, [location.search]);
 
-  const handleInvLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await axios.post(
-        'http://localhost:8080/api/inventory/login',
-        { username: invUsername, password: invPassword }
-      );
-      if (response.status === 200) {
+const handleInvLogin = async (e) => {
+  e.preventDefault();
+  try {
+    const response = await axios.post(
+      'http://localhost:8080/api/inventory/login',
+      { username: invUsername, password: invPassword }
+    );
+    if (response.status === 200) {
+      const token = response.data.token;
+      if (token) {
+        localStorage.setItem('token', token); // ✅ Store JWT token
         localStorage.setItem('userType', 'InvTeam');
         navigate('/inventory-dashboard');
+      } else {
+        setError('Login succeeded but no token received.');
       }
-    // eslint-disable-next-line no-unused-vars
-    } catch (error) {
-      setError('Invalid username or password.');
     }
-  };
-
- const handleAgentRegister = async () => {
-  try {
-    const response = await axios.post('http://localhost:8080/api/delivery/register', {
-      name: agentName,
-      email: agentEmail,
-      password: agentPassword,
-    });
-
-    if (response.status === 200) {
-      alert('Registration successful! Please log in.');
-      setIsRegister(false);
-      setAgentName('');
-      setAgentEmail('');
-      setAgentPassword('');
-      setError('');
-    }
-  } catch (err) {
-    setError(err.response?.data?.message || 'Registration failed.');
+  // eslint-disable-next-line no-unused-vars
+  } catch (error) {
+    setError('Invalid username or password.');
   }
 };
 
+  const handleAgentRegister = async () => {
+    try {
+      const response = await axios.post('http://localhost:8080/api/delivery/register', {
+        name: agentName,
+        email: agentEmail,
+        password: agentPassword,
+        mobileNumber: mobileNumber,
+      });
+
+      if (response.status === 200) {
+        alert('Registration successful! Please log in.');
+        setIsRegister(false);
+        setAgentName('');
+        setAgentEmail('');
+        setAgentPassword('');
+        setMobileNumber('');
+        setError('');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registration failed.');
+    }
+  };
 
   const handleAgentLogin = async () => {
     try {
@@ -157,13 +165,22 @@ export default function Login() {
 
             <div className="space-y-4">
               {isRegister && (
-                <input
-                  type="text"
-                  placeholder="Full Name"
-                  className="w-full px-3 py-2 border border-blue-200 rounded"
-                  value={agentName}
-                  onChange={(e) => setAgentName(e.target.value)}
-                />
+                <>
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    className="w-full px-3 py-2 border border-blue-200 rounded"
+                    value={agentName}
+                    onChange={(e) => setAgentName(e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Mobile Number"
+                    className="w-full px-3 py-2 border border-blue-200 rounded"
+                    value={mobileNumber}
+                    onChange={(e) => setMobileNumber(e.target.value)}
+                  />
+                </>
               )}
               <input
                 type="email"

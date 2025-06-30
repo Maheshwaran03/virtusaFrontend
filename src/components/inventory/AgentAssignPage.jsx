@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 export default function AgentAssign() {
   const [assignments, setAssignments] = useState([]);
   const [inventoryItems, setInventoryItems] = useState([]);
+  const [agents, setAgents] = useState([]);
   const [sku, setSku] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [agent, setAgent] = useState("");
@@ -27,6 +28,10 @@ export default function AgentAssign() {
     axios.get("http://localhost:8080/api/inventory")
       .then((res) => setInventoryItems(res.data))
       .catch((err) => console.error("Inventory fetch failed", err));
+
+axios.get("http://localhost:8080/api/delivery/agents")
+      .then((res) => setAgents(res.data))
+      .catch((err) => console.error("Agent list fetch failed", err));
   }, []);
 
   const resetForm = () => {
@@ -54,7 +59,7 @@ export default function AgentAssign() {
 
     const payload = {
       sku,
-      productName: getProductName(sku), // ✅ Added product name
+      productName: getProductName(sku),
       quantity,
       agent,
       customerName,
@@ -119,6 +124,11 @@ export default function AgentAssign() {
     (agentFilter ? a.agent.toLowerCase().includes(agentFilter.toLowerCase()) : true) &&
     (statusFilter ? a.status === statusFilter : true)
   );
+  const getAgentName = (email) => {
+  const agentObj = agents.find((a) => a.email === email);
+  return agentObj ? agentObj.name : email; // fallback to email if not found
+};
+
 
   return (
     <div className="min-h-screen bg-blue-50 px-6 py-6">
@@ -132,10 +142,11 @@ export default function AgentAssign() {
         </button>
       </div>
 
-      {/* Form */}
+      {/* Assignment Form */}
       <div className="bg-white p-6 rounded-lg shadow mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* SKU Input */}
+
+          {/* SKU */}
           <div>
             <label className="block text-sm text-gray-600 mb-1">SKU</label>
             <input
@@ -160,6 +171,7 @@ export default function AgentAssign() {
             )}
           </div>
 
+          {/* Quantity */}
           <div>
             <label className="block text-sm text-gray-600 mb-1">Quantity</label>
             <input
@@ -171,50 +183,56 @@ export default function AgentAssign() {
             />
           </div>
 
+          {/* Agent Dropdown */}
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Agent Name</label>
-            <input
-              type="text"
-              placeholder="Agent"
+            <label className="block text-sm text-gray-600 mb-1">Select Agent</label>
+            <select
               value={agent}
               onChange={(e) => setAgent(e.target.value)}
               className="border px-4 py-2 rounded w-full"
-            />
+            >
+              <option value="">Select an Agent</option>
+              {agents.map((a, idx) => (
+                <option key={idx} value={a.email}>
+                  {a.name} ({a.email})
+                </option>
+              ))}
+            </select>
           </div>
+           
 
+          
+
+          {/* Customer Info */}
           <div>
             <label className="block text-sm text-gray-600 mb-1">Customer Name</label>
             <input
               type="text"
-              placeholder="Customer Name"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
               className="border px-4 py-2 rounded w-full"
             />
           </div>
-
           <div>
             <label className="block text-sm text-gray-600 mb-1">Mobile No</label>
             <input
               type="text"
-              placeholder="Mobile"
               value={customerMobile}
               onChange={(e) => setCustomerMobile(e.target.value)}
               className="border px-4 py-2 rounded w-full"
             />
           </div>
-
           <div>
             <label className="block text-sm text-gray-600 mb-1">Address</label>
             <input
               type="text"
-              placeholder="Address"
               value={customerAddress}
               onChange={(e) => setCustomerAddress(e.target.value)}
               className="border px-4 py-2 rounded w-full"
             />
           </div>
 
+          {/* Date & Priority */}
           <div>
             <label className="block text-sm text-gray-600 mb-1">Delivery Date</label>
             <input
@@ -224,7 +242,6 @@ export default function AgentAssign() {
               className="border px-4 py-2 rounded w-full"
             />
           </div>
-
           <div>
             <label className="block text-sm text-gray-600 mb-1">Priority</label>
             <select
@@ -239,6 +256,7 @@ export default function AgentAssign() {
           </div>
         </div>
 
+        {/* Buttons */}
         <div className="mt-4 flex justify-end gap-3">
           <button onClick={resetForm} className="bg-gray-300 text-black px-6 py-2 rounded hover:bg-gray-400">
             Cancel
@@ -300,10 +318,10 @@ export default function AgentAssign() {
                   <td className="border px-2 py-1">{a.sku}</td>
                   <td className="border px-2 py-1">{a.productName || getProductName(a.sku)}</td>
                   <td className="border px-2 py-1">{a.quantity}</td>
-                  <td className="border px-2 py-1">{a.agent}</td>
+<td className="border px-2 py-1">{getAgentName(a.agent)}</td>
                   <td className="border px-2 py-1">{a.customerName}</td>
                   <td className="border px-2 py-1">{a.customerMobile}</td>
-                  <td className="border px-2 py-1 whitespace-pre-wrap break-words max-w-xs">{a.customerAddress}</td>
+                <td className="border px-2 py-1 whitespace-pre-wrap break-words max-w-xs">{a.customerAddress}</td>
                   <td className="border px-2 py-1">{a.date}</td>
                   <td className="border px-2 py-1">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(a.priority)}`}>
